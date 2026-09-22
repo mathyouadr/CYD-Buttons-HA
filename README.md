@@ -49,7 +49,13 @@ chez toi (voir [plus bas](#méthode-recommandée--esphome-device-builder)).
    identifiants (Wi-Fi, clé API ESPHome, mot de passe OTA).
 2. Adapter dans `esphome.yaml` et `scripts.yaml` les `entity_id` des
    lumières (`light.plafonier_mathyou`, etc.) à ton installation Home Assistant.
-3. Créer et activer un environnement Python 3.12 dédié :
+   Ces entités doivent déjà exister dans Home Assistant : ce projet ne les crée pas.
+3. Copier le contenu de `scripts.yaml` dans le `scripts.yaml` de Home
+   Assistant (ou l'inclure via `!include_dir_merge_named scripts.yaml` dans
+   `configuration.yaml`), puis recharger les scripts : **Paramètres →
+   Système → Recharger les scripts**. Sans cette étape, les services
+   `script.plafonnier_blanc` etc. appelés par l'écran n'existent pas.
+4. Créer et activer un environnement Python 3.12 dédié :
 
    ```bash
    py -3.12 -m venv venv_esphome
@@ -57,13 +63,13 @@ chez toi (voir [plus bas](#méthode-recommandée--esphome-device-builder)).
    pip install esphome==2024.11.0
    ```
 
-4. Flasher en USB (premier flash uniquement) :
+5. Flasher en USB (premier flash uniquement) :
 
    ```bash
    esphome run esphome.yaml
    ```
 
-5. Les mises à jour suivantes peuvent se faire en OTA, une fois l'ESP32 sur le Wi-Fi :
+6. Les mises à jour suivantes peuvent se faire en OTA, une fois l'ESP32 sur le Wi-Fi :
 
    ```bash
    esphome run esphome.yaml --device <IP_DE_L_ESP32>

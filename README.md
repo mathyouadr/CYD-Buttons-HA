@@ -39,6 +39,12 @@ CYD-Buttons-HA/
 
 ## Installation
 
+Deux méthodes possibles : en ligne de commande (ci-dessous), ou via
+l'add-on **ESPHome Device Builder**, recommandé si Home Assistant tourne déjà
+chez toi (voir [plus bas](#méthode-recommandée--esphome-device-builder)).
+
+### En ligne de commande
+
 1. Copier `secrets.example.yaml` en `secrets.yaml` et renseigner les
    identifiants (Wi-Fi, clé API ESPHome, mot de passe OTA).
 2. Adapter dans `esphome.yaml` et `scripts.yaml` les `entity_id` des
@@ -63,6 +69,34 @@ CYD-Buttons-HA/
    esphome run esphome.yaml --device <IP_DE_L_ESP32>
    esphome logs esphome.yaml --device <IP_DE_L_ESP32>
    ```
+
+### Méthode recommandée : ESPHome Device Builder
+
+L'add-on **ESPHome Device Builder** (anciennement « ESPHome Dashboard »),
+installable directement depuis Home Assistant, évite de gérer soi-même un
+environnement Python et la version d'ESPHome à la main : l'add-on embarque
+son propre environnement de compilation, isolé du reste du système. C'est la
+méthode conseillée si Home Assistant tourne déjà en local (HA OS, ou
+Supervised) — la CLI ci-dessus reste utile surtout pour un usage sans Home
+Assistant, ou en CI.
+
+1. Dans Home Assistant : **Paramètres → Add-ons → Boutique des add-ons**,
+   chercher **ESPHome Device Builder** et l'installer, puis le démarrer.
+2. Ouvrir l'add-on (bouton **Ouvrir l'interface web**) : il liste les
+   appareils déjà connus et propose **+ Nouvel appareil**.
+3. Importer ce projet : copier `esphome.yaml`, `scripts.yaml` et le dossier
+   `fonts/` dans le dossier de configuration de l'add-on (visible depuis
+   l'onglet **Fichiers** de Home Assistant, généralement
+   `config/esphome/`), puis renseigner les secrets via l'onglet
+   **Secrets** de l'add-on plutôt que via `secrets.yaml` en local.
+4. Cliquer sur l'appareil puis **Install** :
+   - Premier flash : choisir **Plug into this computer** (câble USB).
+   - Mises à jour suivantes : choisir **Wirelessly** (OTA), l'ESP32 étant
+     déjà sur le Wi-Fi.
+5. L'onglet **Logs** de l'appareil remplace `esphome logs` en ligne de commande.
+
+Les pièges listés ci-dessous concernent la configuration YAML elle-même : ils
+s'appliquent quelle que soit la méthode d'installation choisie.
 
 ## Pièges connus
 

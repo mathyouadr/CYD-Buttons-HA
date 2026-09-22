@@ -1,0 +1,680 @@
+substitutions:
+  font_direcotry: fonts/
+  width: "320"
+  height: "240"
+  device_name: ESP32-CYD-CHEVET
+  nice_name: ESP32-CYD-CHEVET
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${nice_name}
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+logger:
+
+api:
+  encryption:
+    key: !secret api_key
+
+ota:
+  platform: esphome
+  password: !secret ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: $device_name Fallback Hotspot
+    password: !secret ap_password
+
+captive_portal:
+
+font:
+  - file:
+      path: ${font_direcotry}Arimo-Regular.ttf
+      type: local
+    id: arimo24
+    size: 24
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzàâéèêëîïôùûüç .,!?<"
+  - file:
+      path: ${font_direcotry}Arimo-Regular.ttf
+      type: local
+    id: arimo18
+    size: 18
+    glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzàâéèêëîïôùûüç .,!?<"
+  - file: ${font_direcotry}materialdesignicons-webfont.ttf
+    id: mdi_icons
+    size: 24
+    glyphs:
+      - 󰏘
+
+color:
+  - id: plafonnier_color
+    hex: "FFCC44"
+  - id: chevet_color
+    hex: "FF8822"
+  - id: bureau_color
+    hex: "44CCFF"
+
+globals:
+  - id: recent_touch
+    type: bool
+    restore_value: no
+    initial_value: "true"
+
+output:
+  - platform: ledc
+    pin: GPIO21
+    id: backlight_pwm
+    frequency: 1000 Hz
+    inverted: false
+  - platform: ledc
+    pin: GPIO04
+    id: led_red
+    inverted: true
+  - platform: ledc
+    pin: GPIO17
+    id: led_blue
+    inverted: true
+  - platform: ledc
+    pin: GPIO16
+    id: led_green
+    inverted: true
+
+light:
+  - platform: monochromatic
+    output: backlight_pwm
+    name: "Display Backlight"
+    id: backlight
+    restore_mode: ALWAYS_ON
+  - platform: rgb
+    name: "Front LED"
+    id: front_led
+    restore_mode: ALWAYS_OFF
+    red: led_red
+    green: led_green
+    blue: led_blue
+
+text_sensor:
+  - platform: homeassistant
+    id: ts_plafonnier
+    entity_id: light.plafonier_mathyou
+    on_value:
+      then:
+        - lvgl.widget.update:
+            id: lvgl_btn_plafonnier
+            state:
+              checked: !lambda return (0 == x.compare(std::string{"on"}));
+  - platform: homeassistant
+    id: ts_chevet
+    entity_id: light.chevet_mathyou
+    on_value:
+      then:
+        - lvgl.widget.update:
+            id: lvgl_btn_chevet
+            state:
+              checked: !lambda return (0 == x.compare(std::string{"on"}));
+  - platform: homeassistant
+    id: ts_bureau
+    entity_id: light.bureau_mathyou
+    on_value:
+      then:
+        - lvgl.widget.update:
+            id: lvgl_btn_bureau
+            state:
+              checked: !lambda return (0 == x.compare(std::string{"on"}));
+
+spi:
+  - id: tft
+    clk_pin: GPIO14
+    mosi_pin: GPIO13
+  - id: touch
+    clk_pin: GPIO25
+    mosi_pin: GPIO32
+    miso_pin: GPIO39
+
+touchscreen:
+  platform: xpt2046
+  spi_id: touch
+  cs_pin: GPIO33
+  interrupt_pin: GPIO36
+  update_interval: 50ms
+  threshold: 400
+  calibration:
+    x_min: 180
+    x_max: 3800
+    y_min: 240
+    y_max: 3860
+  transform:
+    swap_xy: true
+  on_touch:
+    then:
+      - light.turn_on: backlight
+      - lambda: id(recent_touch) = true;
+
+display:
+  - platform: ili9xxx
+    model: ST7789V
+    spi_id: tft
+    auto_clear_enabled: false    # ← AJOUTE ÇA
+    cs_pin:
+      number: GPIO15
+      ignore_strapping_warning: true
+    dc_pin:
+      number: GPIO2
+      ignore_strapping_warning: true
+    invert_colors: false
+    transform:
+      swap_xy: true
+      mirror_x: true
+    dimensions:
+      width: ${width}
+      height: ${height}
+lvgl:
+  buffer_size: 25%
+  theme:
+    button:
+      bg_color: 0x1A1A2E
+      bg_opa: COVER
+      border_color: 0x444466
+      border_width: 2
+      text_color: 0xFFFFFF
+      pressed:
+        bg_color: 0x555577
+        bg_opa: COVER
+      checked:
+        bg_color: 0x2A2A4E
+        bg_opa: COVER
+        text_color: 0xFFFFFF
+
+  pages:
+
+    # ══════════════════════════════════════════════════════════════════
+    # PAGE PRINCIPALE
+    # ══════════════════════════════════════════════════════════════════
+    - id: page_main
+      bg_color: 0x0D0D1A
+      widgets:
+        - button:
+            id: lvgl_btn_plafonnier
+            x: 10
+            y: 20
+            width: 210
+            height: 60
+            checkable: true
+            widgets:
+              - label:
+                  text: "Plafonnier"
+                  text_font: arimo24
+                  text_color: plafonnier_color
+                  align: CENTER
+            on_click:
+              then:
+                - homeassistant.service:
+                    service: light.toggle
+                    data:
+                      entity_id: light.plafonier_mathyou
+        - button:
+            x: 230
+            y: 20
+            width: 80
+            height: 60
+            widgets:
+              - label:
+                  text: "󰏘"
+                  text_font: mdi_icons
+                  text_color: plafonnier_color
+                  align: CENTER
+            on_click:
+              then:
+                - lvgl.page.show: page_couleur_plafonnier
+
+        - button:
+            id: lvgl_btn_chevet
+            x: 10
+            y: 95
+            width: 210
+            height: 60
+            checkable: true
+            widgets:
+              - label:
+                  text: "Chevet"
+                  text_font: arimo24
+                  text_color: chevet_color
+                  align: CENTER
+            on_click:
+              then:
+                - homeassistant.service:
+                    service: light.toggle
+                    data:
+                      entity_id: light.chevet_mathyou
+        - button:
+            x: 230
+            y: 95
+            width: 80
+            height: 60
+            widgets:
+              - label:
+                  text: "󰏘"
+                  text_font: mdi_icons
+                  text_color: chevet_color
+                  align: CENTER
+            on_click:
+              then:
+                - lvgl.page.show: page_couleur_chevet
+
+        - button:
+            id: lvgl_btn_bureau
+            x: 10
+            y: 170
+            width: 210
+            height: 60
+            checkable: true
+            widgets:
+              - label:
+                  text: "Bureau"
+                  text_font: arimo24
+                  text_color: bureau_color
+                  align: CENTER
+            on_click:
+              then:
+                - homeassistant.service:
+                    service: light.toggle
+                    data:
+                      entity_id: light.bureau_mathyou
+        - button:
+            x: 230
+            y: 170
+            width: 80
+            height: 60
+            widgets:
+              - label:
+                  text: "󰏘"
+                  text_font: mdi_icons
+                  text_color: bureau_color
+                  align: CENTER
+            on_click:
+              then:
+                - lvgl.page.show: page_couleur_bureau
+
+    # ══════════════════════════════════════════════════════════════════
+    # PAGE COULEUR PLAFONNIER
+    # ══════════════════════════════════════════════════════════════════
+    - id: page_couleur_plafonnier
+      bg_color: 0x0D0D1A
+      widgets:
+        - label:
+            x: 0
+            y: 8
+            width: 320
+            text: "Plafonnier - Couleur"
+            text_font: arimo18
+            text_color: plafonnier_color
+            align: TOP_MID
+        - button:
+            x: 10
+            y: 45
+            width: 90
+            height: 60
+            bg_color: 0x555533
+            widgets:
+              - label:
+                  text: "Blanc"
+                  text_font: arimo18
+                  text_color: 0xFFFFCC
+                  align: CENTER
+            on_click:
+              then:
+                - homeassistant.service:
+                    service: script.plafonnier_blanc
+        - button:
+            x: 115
+            y: 45
+            width: 90
+            height: 60
+            bg_color: 0x553300
+            widgets:
+              - label:
+                  text: "Orange"
+                  text_font: arimo18
+                  text_color: 0xFFAA33
+                  align: CENTER
+            on_click:
+              then:
+                - homeassistant.service:
+                    service: script.plafonnier_orange
+        - button:
+            x: 220
+            y: 45
+            width: 90
+            height: 60
+            bg_color: 0x550000
+            widgets:
+              - label:
+                  text: "Rouge"
+                  text_font: arimo18
+                  text_color: 0xFF4444
+                  align: CENTER
+            on_click:
+              then:
+                - homeassistant.service:
+                    service: script.plafonnier_rouge
+        - button:
+            x: 10
+            y: 120
+            width: 90
+            height: 60
+            bg_color: 0x005500
+            widgets:
+              - label:
+                  text: "Vert"
+                  text_font: arimo18
+                  text_color: 0x44FF44
+                  align: CENTER
+            on_click:
+              then:
+                - homeassistant.service:
+                    service: script.plafonnier_vert
+        - button:
+            x: 115
+            y: 120
+            width: 90
+            height: 60
+            bg_color: 0x000055
+            widgets:
+              - label:
+                  text: "Bleu"
+                  text_font: arimo18
+                  text_color: 0x4488FF
+                  align: CENTER
+            on_click:
+              then:
+                - homeassistant.service:
+                    service: script.plafonnier_bleu
+        - button:
+            x: 220
+            y: 120
+            width: 90
+            height: 60
+            bg_color: 0x440055
+            widgets:
+              - label:
+                  text: "Violet"
+                  text_font: arimo18
+                  text_color: 0xDD44FF
+                  align: CENTER
+            on_click:
+              then:
+                - homeassistant.service:
+                    service: script.plafonnier_violet
+        - button:
+            x: 85
+            y: 195
+            width: 150
+            height: 40
+            bg_color: 0x222233
+            widgets:
+              - label:
+                  text: "< Retour"
+                  text_font: arimo18
+                  text_color: 0x8888FF
+                  align: CENTER
+            on_click:
+              then:
+                - lvgl.page.show: page_main
+
+    # ══════════════════════════════════════════════════════════════════
+    # PAGE COULEUR CHEVET
+    # ══════════════════════════════════════════════════════════════════
+    - id: page_couleur_chevet
+      bg_color: 0x0D0D1A
+      widgets:
+        - label:
+            x: 0
+            y: 8
+            width: 320
+            text: "Chevet - Couleur"
+            text_font: arimo18
+            text_color: chevet_color
+            align: TOP_MID
+        - button:
+            x: 10
+            y: 45
+            width: 90
+            height: 60
+            bg_color: 0x555533
+            widgets:
+              - label:
+                  text: "Blanc"
+                  text_font: arimo18
+                  text_color: 0xFFFFCC
+                  align: CENTER
+            on_click:
+              then:
+                - homeassistant.service:
+                    service: script.chevet_blanc
+        - button:
+            x: 115
+            y: 45
+            width: 90
+            height: 60
+            bg_color: 0x553300
+            widgets:
+              - label:
+                  text: "Orange"
+                  text_font: arimo18
+                  text_color: 0xFFAA33
+                  align: CENTER
+            on_click:
+              then:
+                - homeassistant.service:
+                    service: script.chevet_orange
+        - button:
+            x: 220
+            y: 45
+            width: 90
+            height: 60
+            bg_color: 0x550000
+            widgets:
+              - label:
+                  text: "Rouge"
+                  text_font: arimo18
+                  text_color: 0xFF4444
+                  align: CENTER
+            on_click:
+              then:
+                - homeassistant.service:
+                    service: script.chevet_rouge
+        - button:
+            x: 10
+            y: 120
+            width: 90
+            height: 60
+            bg_color: 0x005500
+            widgets:
+              - label:
+                  text: "Vert"
+                  text_font: arimo18
+                  text_color: 0x44FF44
+                  align: CENTER
+            on_click:
+              then:
+                - homeassistant.service:
+                    service: script.chevet_vert
+        - button:
+            x: 115
+            y: 120
+            width: 90
+            height: 60
+            bg_color: 0x000055
+            widgets:
+              - label:
+                  text: "Bleu"
+                  text_font: arimo18
+                  text_color: 0x4488FF
+                  align: CENTER
+            on_click:
+              then:
+                - homeassistant.service:
+                    service: script.chevet_bleu
+        - button:
+            x: 220
+            y: 120
+            width: 90
+            height: 60
+            bg_color: 0x440055
+            widgets:
+              - label:
+                  text: "Violet"
+                  text_font: arimo18
+                  text_color: 0xDD44FF
+                  align: CENTER
+            on_click:
+              then:
+                - homeassistant.service:
+                    service: script.chevet_violet
+        - button:
+            x: 85
+            y: 195
+            width: 150
+            height: 40
+            bg_color: 0x222233
+            widgets:
+              - label:
+                  text: "< Retour"
+                  text_font: arimo18
+                  text_color: 0x8888FF
+                  align: CENTER
+            on_click:
+              then:
+                - lvgl.page.show: page_main
+
+    # ══════════════════════════════════════════════════════════════════
+    # PAGE COULEUR BUREAU
+    # ══════════════════════════════════════════════════════════════════
+    - id: page_couleur_bureau
+      bg_color: 0x0D0D1A
+      widgets:
+        - label:
+            x: 0
+            y: 8
+            width: 320
+            text: "Bureau - Couleur"
+            text_font: arimo18
+            text_color: bureau_color
+            align: TOP_MID
+        - button:
+            x: 10
+            y: 45
+            width: 90
+            height: 60
+            bg_color: 0x555533
+            widgets:
+              - label:
+                  text: "Blanc"
+                  text_font: arimo18
+                  text_color: 0xFFFFCC
+                  align: CENTER
+            on_click:
+              then:
+                - homeassistant.service:
+                    service: script.bureau_blanc
+        - button:
+            x: 115
+            y: 45
+            width: 90
+            height: 60
+            bg_color: 0x553300
+            widgets:
+              - label:
+                  text: "Orange"
+                  text_font: arimo18
+                  text_color: 0xFFAA33
+                  align: CENTER
+            on_click:
+              then:
+                - homeassistant.service:
+                    service: script.bureau_orange
+        - button:
+            x: 220
+            y: 45
+            width: 90
+            height: 60
+            bg_color: 0x550000
+            widgets:
+              - label:
+                  text: "Rouge"
+                  text_font: arimo18
+                  text_color: 0xFF4444
+                  align: CENTER
+            on_click:
+              then:
+                - homeassistant.service:
+                    service: script.bureau_rouge
+        - button:
+            x: 10
+            y: 120
+            width: 90
+            height: 60
+            bg_color: 0x005500
+            widgets:
+              - label:
+                  text: "Vert"
+                  text_font: arimo18
+                  text_color: 0x44FF44
+                  align: CENTER
+            on_click:
+              then:
+                - homeassistant.service:
+                    service: script.bureau_vert
+        - button:
+            x: 115
+            y: 120
+            width: 90
+            height: 60
+            bg_color: 0x000055
+            widgets:
+              - label:
+                  text: "Bleu"
+                  text_font: arimo18
+                  text_color: 0x4488FF
+                  align: CENTER
+            on_click:
+              then:
+                - homeassistant.service:
+                    service: script.bureau_bleu
+        - button:
+            x: 220
+            y: 120
+            width: 90
+            height: 60
+            bg_color: 0x440055
+            widgets:
+              - label:
+                  text: "Violet"
+                  text_font: arimo18
+                  text_color: 0xDD44FF
+                  align: CENTER
+            on_click:
+              then:
+                - homeassistant.service:
+                    service: script.bureau_violet
+        - button:
+            x: 85
+            y: 195
+            width: 150
+            height: 40
+            bg_color: 0x222233
+            widgets:
+              - label:
+                  text: "< Retour"
+                  text_font: arimo18
+                  text_color: 0x8888FF
+                  align: CENTER
+            on_click:
+              then:
+                - lvgl.page.show: page_main

@@ -1,0 +1,188 @@
+# ══════════════════════════════════════════════════════
+# PLAFONNIER
+# ══════════════════════════════════════════════════════
+plafonnier_blanc:
+  alias: "Plafonnier Blanc"
+  sequence:
+    - service: light.turn_on
+      target:
+        entity_id: light.plafonier_mathyou
+      data:
+        hs_color: [54.5, 21.6]
+        brightness: 255
+
+plafonnier_orange:
+  alias: "Plafonnier Orange"
+  sequence:
+    - service: light.turn_on
+      target:
+        entity_id: light.plafonier_mathyou
+      data:
+        hs_color: [28.2, 100.0]
+        brightness: 255
+
+plafonnier_rouge:
+  alias: "Plafonnier Rouge"
+  sequence:
+    - service: light.turn_on
+      target:
+        entity_id: light.plafonier_mathyou
+      data:
+        hs_color: [0.0, 100.0]
+        brightness: 255
+
+plafonnier_vert:
+  alias: "Plafonnier Vert"
+  sequence:
+    - service: light.turn_on
+      target:
+        entity_id: light.plafonier_mathyou
+      data:
+        hs_color: [120.0, 100.0]
+        brightness: 255
+
+plafonnier_bleu:
+  alias: "Plafonnier Bleu"
+  sequence:
+    - service: light.turn_on
+      target:
+        entity_id: light.plafonier_mathyou
+      data:
+        hs_color: [240.0, 100.0]
+        brightness: 255
+
+plafonnier_violet:
+  alias: "Plafonnier Violet"
+  sequence:
+    - service: light.turn_on
+      target:
+        entity_id: light.plafonier_mathyou
+      data:
+        hs_color: [282.4, 100.0]
+        brightness: 255
+
+# ══════════════════════════════════════════════════════
+# CHEVET
+# ══════════════════════════════════════════════════════
+chevet_blanc:
+  alias: "Chevet Blanc"
+  sequence:
+    - service: light.turn_on
+      target:
+        entity_id: light.chevet_mathyou
+      data:
+        hs_color: [54.5, 21.6]
+        brightness: 255
+
+chevet_orange:
+  alias: "Chevet Orange"
+  sequence:
+    - service: light.turn_on
+      target:
+        entity_id: light.chevet_mathyou
+      data:
+        hs_color: [28.2, 100.0]
+        brightness: 255
+
+chevet_rouge:
+  alias: "Chevet Rouge"
+  sequence:
+    - service: light.turn_on
+      target:
+        entity_id: light.chevet_mathyou
+      data:
+        hs_color: [0.0, 100.0]
+        brightness: 255
+
+chevet_vert:
+  alias: "Chevet Vert"
+  sequence:
+    - service: light.turn_on
+      target:
+        entity_id: light.chevet_mathyou
+      data:
+        hs_color: [120.0, 100.0]
+        brightness: 255
+
+chevet_bleu:
+  alias: "Chevet Bleu"
+  sequence:
+    - service: light.turn_on
+      target:
+        entity_id: light.chevet_mathyou
+      data:
+        hs_color: [240.0, 100.0]
+        brightness: 255
+
+chevet_violet:
+  alias: "Chevet Violet"
+  sequence:
+    - service: light.turn_on
+      target:
+        entity_id: light.chevet_mathyou
+      data:
+        hs_color: [282.4, 100.0]
+        brightness: 255
+
+# ══════════════════════════════════════════════════════
+# BUREAU
+# ══════════════════════════════════════════════════════
+bureau_blanc:
+  alias: "Bureau Blanc"
+  sequence:
+    - service: light.turn_on
+      target:
+        entity_id: light.bureau_mathyou
+      data:
+        hs_color: [54.5, 21.6]
+        brightness: 255
+
+bureau_orange:
+  alias: "Bureau Orange"
+  sequence:
+    - service: light.turn_on
+      target:
+        entity_id: light.bureau_mathyou
+      data:
+        hs_color: [28.2, 100.0]
+        brightness: 255
+
+bureau_rouge:
+  alias: "Bureau Rouge"
+  sequence:
+    - service: light.turn_on
+      target:
+        entity_id: light.bureau_mathyou
+      data:
+        hs_color: [0.0, 100.0]
+        brightness: 255
+
+bureau_vert:
+  alias: "Bureau Vert"
+  sequence:
+    - service: light.turn_on
+      target:
+        entity_id: light.bureau_mathyou
+      data:
+        hs_color: [120.0, 100.0]
+        brightness: 255
+
+bureau_bleu:
+  alias: "Bureau Bleu"
+  sequence:
+    - service: light.turn_on
+      target:
+        entity_id: light.bureau_mathyou
+      data:
+        hs_color: [240.0, 100.0]
+        brightness: 255
+
+bureau_violet:
+  alias: "Bureau Violet"
+  sequence:
+    - service: light.turn_on
+      target:
+        entity_id: light.bureau_mathyou
+      data:
+        hs_color: [282.4, 100.0]
+        brightness: 255
